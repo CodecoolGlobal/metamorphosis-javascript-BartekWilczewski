@@ -25,7 +25,7 @@ function initDragAndDrop() {
 
 function initElements() {
     ui.cards = document.querySelectorAll(".card");
-    ui.slots = document.querySelectorAll(".card-slot.drop-zone");
+    ui.slots = document.querySelectorAll(".drop-zone");
     ui.mixedCardsContainer = document.querySelector(".mixed-cards");
 
     ui.cards.forEach(function (card) {
@@ -63,18 +63,20 @@ function initDropzone(dropzone) {
     dropzone.addEventListener("dragover", handleDragOver);
     dropzone.addEventListener("dragleave", handleDragLeave);
     dropzone.addEventListener("drop", handleDrop);
-    console.log("zone init");
 }
 
 function handleDragStart(e) {
     game.dragged = e.currentTarget;
     this.classList.add("dragged");
+    let animalType = this.dataset.animalType;
+    e.dataTransfer.setData(`type/dragged-${animalType}`, animalType);
+    e.dataTransfer.setData("type/dragged", animalType);
     toggleDropZonesHighlight();
-    console.log("Drag start of", game.dragged);
+    //console.log("Drag start of", game.dragged);
 }
 
 function handleDragEnd() {
-    console.log("Drag end of", game.dragged);
+    //console.log("Drag end of", game.dragged);
     game.dragged = null;
     this.classList.remove("dragged");
     toggleDropZonesHighlight(false);
@@ -95,23 +97,24 @@ function handleDragEnter(e) {
     }else{
         this.classList.remove("active-zone");
     }
-    console.log("Drag enter of", e.currentTarget);
+    //console.log("Drag enter of", e.currentTarget);
 }
 
 function handleDragLeave(e) {
-    console.log("Drag leave of", e.currentTarget);
+    //console.log("Drag leave of", e.currentTarget);
+    this.classList.remove("over-zone");
+    this.classList.add("active-zone");
 }
 
 function handleDrop(e) {
     e.preventDefault();
     const dropzone = e.currentTarget;
-    console.log("Drop of", dropzone);
+    //console.log("Drop of", dropzone);
 
-    if (dom.hasClass(dropzone, "card-slot drop-zone")) {
-        if (dom.isEmpty(dropzone)) {
-            dropzone.appendChild(game.dragged);
-            return;
-        }
+    if (canDropHere(e)) {
+        dropzone.appendChild(game.dragged);
+        checkWin();   
+        return;
     }
 }
 
@@ -125,11 +128,42 @@ function toggleDropZonesHighlight(highlight = true){
             zone.classList.add("active-zone");
         else{
             zone.classList.remove("active-zone");
+            zone.classList.remove("over-zone");
         }
     }
 }
 
 /*can I drop it here */
 function canDropHere(e){
-    return true;
+    return canDropInSlot(e)
+    || canDropInDeck(e);
+}
+
+function canDropInDeck(e){
+    return e.currentTarget.classList.contains("mixed-cards") && e.dataTransfer.types.includes("type/dragged");
+}
+
+function canDropInSlot(e){
+    return e.currentTarget.classList.contains("card-slot") && e.currentTarget.children.length === 0 
+    && e.dataTransfer.types.includes(`type/dragged-${e.currentTarget.parentElement.dataset.acceptedCards}`)
+}
+
+function checkWin(){
+    let placedCards = document.querySelectorAll(".card-slot > .card");
+    
+    if(placedCards.length < 8)
+        return;
+
+    let lastOrderNo = 0;
+    for(let placedCard of placedCards){
+        if(placedCard.dataset.order <= lastOrderNo)
+        {
+            console.log(placedCard.dataset.order);
+            console.log(lastOrderNo);
+            console.log(placedCard.dataset.order <= lastOrderNo);
+            return;
+        }
+        lastOrderNo = placedCard.dataset.order;
+    }
+    alert("you're osom");
 }
