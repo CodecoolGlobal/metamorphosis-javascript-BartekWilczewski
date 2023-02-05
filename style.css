@@ -61,3 +61,19 @@ body {
     box-shadow: 0 0 0 8px #86989B;
     border-radius: var(--border-radius);
 }
+
+/* dragged spurce element styling */
+.dragged {
+    opacity: 0.6;
+}
+
+.drop-zone.active-zone {
+    border: 4px dashed #cdcdcd;
+    border-radius: var(--border-radius);
+    background: #e6a6a6;
+}
+
+.drop-zone.over-zone {
+    border-style: solid;
+    background-color: white;
+}
